@@ -118,5 +118,3 @@ export const welcomeSummary = {
   overdueTasks: 2,
   upcomingDeadlines: 8,
 };
-
-export const lastUpdated = "12 May 2025";
