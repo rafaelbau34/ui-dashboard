@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FolderKanban,
   Calendar,
   BarChart3,
   Settings,
+  User,
+  Wallet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,16 +26,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { title: "Dashboard", icon: LayoutDashboard, isActive: true, iconColor: "text-primary" },
-  { title: "Project", icon: FolderKanban, iconColor: "text-emerald-500" },
-  { title: "Calendar", icon: Calendar, iconColor: "text-orange-500" },
-  { title: "Reports", icon: BarChart3, iconColor: "text-rose-500" },
-  { title: "Settings", icon: Settings, iconColor: "text-muted-foreground" },
+  { title: "Dashboard", href: "/", icon: LayoutDashboard, iconColor: "text-primary" },
+  { title: "Projects", href: "/projects", icon: FolderKanban, iconColor: "text-emerald-500" },
+  { title: "Clients", href: "/clients", icon: User, iconColor: "text-blue-500" },
+  { title: "Calendar", href: "/calendar", icon: Calendar, iconColor: "text-orange-500" },
+  { title: "Reports", href: "/reports", icon: BarChart3, iconColor: "text-rose-500" },
+  { title: "Finance", href: "/finance", icon: Wallet, iconColor: "text-indigo-500" },
+  { title: "Settings", href: "/settings", icon: Settings, iconColor: "text-muted-foreground" },
 ];
 
 export function DashboardSidebar(
   props: React.ComponentProps<typeof Sidebar>
 ) {
+  const pathname = usePathname();
+
   return (
     <Sidebar collapsible="offcanvas" className="!border-r-0" {...props}>
       <SidebarHeader className="px-3 py-4">
@@ -52,10 +59,10 @@ export function DashboardSidebar(
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={item.isActive}
+                    isActive={pathname === item.href}
                     className="h-9"
                   >
-                    <Link href="#">
+                    <Link href={item.href}>
                       <item.icon className={cn("size-4 shrink-0", item.iconColor)} />
                       <span className="text-sm">{item.title}</span>
 

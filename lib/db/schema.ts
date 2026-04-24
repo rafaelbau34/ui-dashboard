@@ -1,0 +1,45 @@
+import { pgTable, serial, text, integer, numeric, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
+
+export const projectStatusEnum = pgEnum("project_status", ["in_progress", "completed", "on_hold"]);
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  avatarSeed: text("avatarSeed"),
+});
+
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+});
+
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  color: text("color").notNull(),
+  status: projectStatusEnum("status").notNull(),
+  progress: integer("progress").notNull(),
+  totalTasks: integer("totalTasks").notNull(),
+  completedTasks: integer("completedTasks").notNull(),
+  dueDate: text("dueDate").notNull(),
+  ownerId: integer("ownerId").references(() => users.id),
+  clientId: integer("clientId").references(() => clients.id),
+});
+
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: serial("id").primaryKey(),
+  day: text("day").notNull(),
+  value: integer("value").notNull(),
+  isHighlight: boolean("is_highlight").default(false),
+});
+
+export const finance = pgTable("finance", {
+  id: serial("id").primaryKey(),
+  amount: numeric("amount").notNull(),
+  type: text("type").notNull(), // 'income' or 'expense'
+  category: text("category").notNull(),
+  date: timestamp("date").notNull(),
+});

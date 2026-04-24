@@ -15,20 +15,7 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex -space-x-2">
-          <Avatar className="size-7 border-2 border-card">
-            <AvatarImage src="https://api.dicebear.com/9.x/glass/svg?seed=a" />
-            <AvatarFallback>A</AvatarFallback>
-          </Avatar>
-          <Avatar className="size-7 border-2 border-card">
-            <AvatarImage src="https://api.dicebear.com/9.x/glass/svg?seed=b" />
-            <AvatarFallback>B</AvatarFallback>
-          </Avatar>
-          <Avatar className="size-7 border-2 border-card">
-            <AvatarImage src="https://api.dicebear.com/9.x/glass/svg?seed=c" />
-            <AvatarFallback>C</AvatarFallback>
-          </Avatar>
-        </div>
+
         <ThemeToggle />
         <Button variant="ghost" size="icon" asChild className="size-8">
           <Link
