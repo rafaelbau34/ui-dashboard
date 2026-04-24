@@ -30,14 +30,33 @@ export async function createTask(data: TaskInput) {
       isCompleted: false,
     });
 
-    // 2. Increment totalTasks in project
+    // 2. Re-sync counters from source of truth (tasks table)
     await tx
       .update(projects)
-      .set({ totalTasks: sql`${projects.totalTasks} + 1` })
+      .set({
+        totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${result.data.projectId})`,
+        completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${result.data.projectId} and ${tasks.isCompleted} = true)`,
+      })
       .where(eq(projects.id, result.data.projectId));
   });
 
   revalidatePath("/");
+  revalidatePath("/projects");
+}
+
+export async function updateTask(
+  id: number,
+  data: Partial<Pick<TaskInput, "name" | "dueDate">>
+) {
+  const patch: Record<string, any> = {};
+  if (typeof data.name === "string") patch.name = data.name;
+  if (typeof data.dueDate === "string") patch.dueDate = data.dueDate;
+
+  if (Object.keys(patch).length === 0) return;
+
+  await db.update(tasks).set(patch).where(eq(tasks.id, id));
+  revalidatePath("/");
+  revalidatePath("/projects");
 }
 
 export async function toggleTaskStatus(id: number, isCompleted: boolean) {
@@ -51,14 +70,15 @@ export async function toggleTaskStatus(id: number, isCompleted: boolean) {
   if (task.isCompleted === isCompleted) return;
 
   await db.transaction(async (tx) => {
-    // 1. Update task
     await tx.update(tasks).set({ isCompleted }).where(eq(tasks.id, id));
 
-    // 2. Update project completedTasks count
-    const increment = isCompleted ? 1 : -1;
+    // Re-sync counters to prevent drift (fixes ratios like 2/1).
     await tx
       .update(projects)
-      .set({ completedTasks: sql`${projects.completedTasks} + ${increment}` })
+      .set({
+        totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!})`,
+        completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)`,
+      })
       .where(eq(projects.id, task.projectId!));
   });
 
@@ -78,14 +98,16 @@ export async function deleteTask(id: number) {
       await tx
         .update(projects)
         .set({
-          totalTasks: sql`${projects.totalTasks} - 1`,
-          completedTasks: task.isCompleted
-            ? sql`${projects.completedTasks} - 1`
-            : sql`${projects.completedTasks}`,
+          totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!})`,
+          completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)`,
         })
         .where(eq(projects.id, task.projectId!));
     }
   });
 
   revalidatePath("/");
+  revalidatePath("/projects");
 }
+
+// Friendly aliases to match the UI wording in this project.
+export const addTask = createTask;

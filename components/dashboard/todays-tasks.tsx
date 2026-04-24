@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useOptimistic } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import { useDashboardStore } from "@/store/dashboard-store";
 import { cn } from "@/lib/utils";
 import { useTransition } from "react";
 import { toggleTaskStatus } from "@/lib/actions/task.actions";
+import { useRouter } from "next/navigation";
 
 const projectColorMap: Record<string, string> = {
   blue: "rounded-lg border border-border bg-muted/50 text-foreground",
@@ -42,9 +43,17 @@ interface TodaysTasksProps {
 
 export function TodaysTasks({ tasks }: TodaysTasksProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const [optimisticTasks, updateOptimisticTasks] = useOptimistic(
+    tasks,
+    (state: TaskData[], patch: { id: string; isCompleted: boolean }) =>
+      state.map((t) => (t.id === patch.id ? { ...t, isCompleted: patch.isCompleted } : t))
+  );
 
   const uniqueProjects = Array.from(
-    new Map(tasks.map((t) => [t.projectId, { id: t.projectId, name: t.projectName }])).values()
+    new Map(
+      optimisticTasks.map((t) => [t.projectId, { id: t.projectId, name: t.projectName }])
+    ).values()
   );
 
   const {
@@ -56,7 +65,7 @@ export function TodaysTasks({ tasks }: TodaysTasksProps) {
     } = useDashboardStore();
 
   const filteredTasks = useMemo(() => {
-    let result = tasks;
+    let result = optimisticTasks;
     if (tasksSearchQuery.trim()) {
       const q = tasksSearchQuery.toLowerCase();
       result = result.filter(
@@ -69,7 +78,7 @@ export function TodaysTasks({ tasks }: TodaysTasksProps) {
       result = result.filter((t) => tasksProjectFilter.includes(t.projectId));
     }
     return result;
-  }, [tasks, tasksSearchQuery, tasksProjectFilter]);
+  }, [optimisticTasks, tasksSearchQuery, tasksProjectFilter]);
 
   const hasTaskFilters = tasksProjectFilter.length > 0;
 
@@ -143,8 +152,15 @@ export function TodaysTasks({ tasks }: TodaysTasksProps) {
               <Checkbox 
                 checked={task.isCompleted} 
                 onCheckedChange={(checked) => {
+                  updateOptimisticTasks({ id: task.id, isCompleted: !!checked });
                   startTransition(async () => {
-                    await toggleTaskStatus(parseInt(task.id), !!checked);
+                    try {
+                      await toggleTaskStatus(parseInt(task.id), !!checked);
+                      router.refresh();
+                    } catch (e) {
+                      // Revert if the server fails.
+                      updateOptimisticTasks({ id: task.id, isCompleted: !checked });
+                    }
                   });
                 }}
                 disabled={isPending}

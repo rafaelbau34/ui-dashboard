@@ -4,7 +4,7 @@ import { welcomeSummary } from "@/mock-data/dashboard";
 import { StatsCards } from "./stats-cards";
 import { TodaysTasks, type TaskData } from "./todays-tasks";
 import { PerformanceChart } from "./performance-chart";
-import { ProjectsTable, type Project } from "./projects-table";
+import { ProjectsTable, type ClientOption, type Project } from "./projects-table";
 
 function WelcomeSection() {
   const { userName, tasksDueToday, overdueTasks, upcomingDeadlines } =
@@ -40,9 +40,16 @@ interface DashboardContentProps {
   performanceData: any;
   tasks: TaskData[];
   projects: Project[];
+  clients: ClientOption[];
 }
 
-export function DashboardContent({ stats, performanceData, tasks, projects }: DashboardContentProps) {
+export function DashboardContent({
+  stats,
+  performanceData,
+  tasks,
+  projects,
+  clients,
+}: DashboardContentProps) {
   // Hardcoded score and change for performance chart for now
   const score = 84;
   const change = 12;
@@ -60,7 +67,7 @@ export function DashboardContent({ stats, performanceData, tasks, projects }: Da
             <PerformanceChart score={score} change={change} data={performanceData} />
           </div>
         </div>
-        <ProjectsTable projects={projects} />
+        <ProjectsTable projects={projects} clients={clients} />
       </div>
     </main>
   );

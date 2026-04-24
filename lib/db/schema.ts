@@ -25,7 +25,12 @@ export const projects = pgTable("projects", {
   progress: integer("progress").notNull(),
   totalTasks: integer("totalTasks").notNull(),
   completedTasks: integer("completedTasks").notNull(),
+  // Legacy display value (kept as text to avoid casting failures on existing DBs).
   dueDate: text("dueDate").notNull(),
+  // New sortable date value (Mexico datepicker will write here).
+  dueDateAt: timestamp("due_date", { mode: "date" }),
+  totalBudget: numeric("total_budget", { precision: 12, scale: 2 }).$type<number>().notNull().default(0),
+  category: text("category").notNull().default("Development"),
   ownerId: integer("ownerId").references(() => users.id),
   clientId: integer("clientId").references(() => clients.id),
 });

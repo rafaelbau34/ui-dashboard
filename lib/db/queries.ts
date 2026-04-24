@@ -13,24 +13,32 @@ export async function getProjects() {
       totalTasks: projects.totalTasks,
       completedTasks: projects.completedTasks,
       dueDate: projects.dueDate,
+      dueDateAt: projects.dueDateAt,
       ownerId: projects.ownerId,
+      clientId: projects.clientId,
+      clientName: clients.name,
       ownerName: users.name,
       ownerAvatarSeed: users.avatarSeed,
-      clientId: projects.clientId,
     })
     .from(projects)
-    .leftJoin(users, eq(projects.ownerId, users.id));
+    .leftJoin(users, eq(projects.ownerId, users.id))
+    .leftJoin(clients, eq(projects.clientId, clients.id));
 
   return result.map((p) => ({
     ...p,
     id: `p${p.id}`, // match the format expected by the frontend
     ownerName: p.ownerName ?? "Unknown",
     ownerAvatarSeed: p.ownerAvatarSeed ?? "default",
+    clientName: p.clientName ?? "Unknown",
   }));
 }
 
 export async function getClients() {
   return await db.select().from(clients);
+}
+
+export async function getProjectTasks(projectId: number) {
+  return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
 }
 
 export async function getDashboardStats() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,7 +20,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -46,6 +45,9 @@ import {
 import { ProjectForm } from "./forms/project-form";
 import { deleteProject } from "@/lib/actions/project.actions";
 import { MoreHorizontal, Edit, Trash, Plus } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { addTask, deleteTask, toggleTaskStatus, updateTask } from "@/lib/actions/task.actions";
+import { Check, Pencil, Trash2 } from "lucide-react";
 import {
   Search,
   Filter,
@@ -74,11 +76,27 @@ export interface Project {
   totalTasks: number;
   completedTasks: number;
   dueDate: string;
-  ownerName: string;
-  ownerAvatarSeed: string;
+  dueDateAt?: string | Date | null;
+  clientName?: string | null;
+  clientId?: number | null;
+  totalBudget?: number | null;
+  category?: string | null;
+}
+export interface ClientOption {
+  id: number;
+  name: string;
+}
+
+export interface TaskRow {
+  id: number;
+  name: string;
+  dueDate: string;
+  isCompleted: boolean;
+  projectId: number | null;
 }
 import { useDashboardStore } from "@/store/dashboard-store";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 function StatusBadge({ status }: { status: ProjectStatus }) {
   if (status === "in_progress") {
@@ -113,9 +131,23 @@ const projectIconMap: Record<string, { icon: LucideIcon; iconColor: string }> = 
   amber: { icon: Wallet, iconColor: "text-amber-500" },
 };
 
-export function ProjectsTable({ projects }: { projects: Project[] }) {
+export function ProjectsTable({
+  projects,
+  clients,
+}: {
+  projects: Project[];
+  clients: ClientOption[];
+}) {
+  const router = useRouter();
+  const [isRefreshing, startRefreshing] = useTransition();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [projectTasks, setProjectTasks] = useState<TaskRow[]>([]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingTaskName, setEditingTaskName] = useState("");
 
   const {
     projectsSearchQuery,
@@ -197,27 +229,18 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
         header: "Due Date",
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {row.original.dueDate}
+            {(row.original.dueDate ?? "").split("T")[0]}
           </span>
         ),
       },
       {
-        accessorKey: "ownerName",
-        header: "Owner",
+        accessorKey: "clientName",
+        header: "Client",
         cell: ({ row }) => {
-          const p = row.original;
           return (
-            <div className="flex items-center gap-2">
-              <Avatar className="size-6">
-                <AvatarImage
-                  src={`https://api.dicebear.com/9.x/glass/svg?seed=${p.ownerAvatarSeed}`}
-                />
-                <AvatarFallback className="text-xs">
-                  {p.ownerName.slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm">{p.ownerName}</span>
-            </div>
+            <span className="text-sm text-muted-foreground">
+              {row.original.clientName ?? "Unknown"}
+            </span>
           );
         },
       },
@@ -248,6 +271,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
                   onClick={async () => {
                     if (confirm("Are you sure you want to delete this project?")) {
                       await deleteProject(parseInt(p.id.replace('p', '')));
+                      startRefreshing(() => router.refresh());
                     }
                   }}
                 >
@@ -399,6 +423,26 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="cursor-pointer"
+                  onClick={async (e) => {
+                    // Don't hijack clicks on checkboxes / action menu.
+                    const target = e.target as HTMLElement;
+                    if (target.closest("button, a, [role='menuitem'], input")) return;
+
+                    const p = row.original;
+                    setActiveProject(p);
+                    setIsSheetOpen(true);
+
+                    // Lazy-fetch tasks via a lightweight endpoint implemented through Next route (below).
+                    const projectId = parseInt(p.id.replace("p", ""));
+                    const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                    if (res.ok) {
+                      const json = (await res.json()) as { tasks: TaskRow[] };
+                      setProjectTasks(json.tasks);
+                    } else {
+                      setProjectTasks([]);
+                    }
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -488,6 +532,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
             <DialogTitle>{editingProject ? "Edit Project" : "New Project"}</DialogTitle>
           </DialogHeader>
           <ProjectForm 
+            clients={clients}
             project={editingProject ? {
               id: parseInt(editingProject.id.replace('p', '')),
               name: editingProject.name,
@@ -496,14 +541,160 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
               progress: editingProject.progress,
               totalTasks: editingProject.totalTasks,
               completedTasks: editingProject.completedTasks,
-              dueDate: editingProject.dueDate,
+              dueDate: editingProject.dueDateAt
+                ? new Date(editingProject.dueDateAt as any)
+                : new Date(editingProject.dueDate),
               ownerId: 1, // Simplified
-              clientId: 1, // Simplified
+              clientId: editingProject.clientId ?? 1, // Simplified
+              totalBudget: Number(editingProject.totalBudget ?? 0),
+              category: editingProject.category ?? "Development",
             } : undefined}
             onSuccess={() => setIsDialogOpen(false)} 
           />
         </DialogContent>
       </Dialog>
+
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>
+              {activeProject ? `Project: ${activeProject.name}` : "Project"}
+            </SheetTitle>
+          </SheetHeader>
+
+          {activeProject && (
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Add task..."
+                  value={newTaskName}
+                  onChange={(e) => setNewTaskName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      (async () => {
+                        const projectId = parseInt(activeProject.id.replace("p", ""));
+                        const dueDate = activeProject.dueDate;
+                        await addTask({ name: newTaskName, projectId, dueDate });
+                        setNewTaskName("");
+                        const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                        if (res.ok) setProjectTasks((await res.json()).tasks);
+                      })();
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!newTaskName.trim()) return;
+                    const projectId = parseInt(activeProject.id.replace("p", ""));
+                    const dueDate = activeProject.dueDate;
+                    await addTask({ name: newTaskName, projectId, dueDate });
+                    setNewTaskName("");
+                    const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                    if (res.ok) setProjectTasks((await res.json()).tasks);
+                    startRefreshing(() => router.refresh());
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+
+              <div className="divide-y rounded-lg border">
+                {projectTasks.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground">No tasks yet.</div>
+                ) : (
+                  projectTasks.map((t) => (
+                    <div key={t.id} className="flex items-center gap-2 p-3">
+                      <Checkbox
+                        checked={t.isCompleted}
+                        onCheckedChange={async (checked) => {
+                          await toggleTaskStatus(t.id, !!checked);
+                          setProjectTasks((prev) =>
+                            prev.map((x) => (x.id === t.id ? { ...x, isCompleted: !!checked } : x))
+                          );
+                          startRefreshing(() => router.refresh());
+                        }}
+                      />
+
+                      {editingTaskId === t.id ? (
+                        <Input
+                          value={editingTaskName}
+                          onChange={(e) => setEditingTaskName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              (async () => {
+                                await updateTask(t.id, { name: editingTaskName });
+                                setProjectTasks((prev) =>
+                                  prev.map((x) => (x.id === t.id ? { ...x, name: editingTaskName } : x))
+                                );
+                                setEditingTaskId(null);
+                                setEditingTaskName("");
+                              })();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className={cn("text-sm font-medium", t.isCompleted && "line-through opacity-60")}>
+                          {t.name}
+                        </span>
+                      )}
+
+                      <div className="ml-auto flex items-center gap-1">
+                        {editingTaskId === t.id ? (
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={async () => {
+                              await updateTask(t.id, { name: editingTaskName });
+                              setProjectTasks((prev) =>
+                                prev.map((x) => (x.id === t.id ? { ...x, name: editingTaskName } : x))
+                              );
+                              setEditingTaskId(null);
+                              setEditingTaskName("");
+                              startRefreshing(() => router.refresh());
+                            }}
+                            aria-label="Save task"
+                          >
+                            <Check />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => {
+                              setEditingTaskId(t.id);
+                              setEditingTaskName(t.name);
+                            }}
+                            aria-label="Edit task"
+                          >
+                            <Pencil />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-red-600 hover:text-red-600"
+                          onClick={async () => {
+                            if (!confirm("Delete this task?")) return;
+                            await deleteTask(t.id);
+                            setProjectTasks((prev) => prev.filter((x) => x.id !== t.id));
+                            startRefreshing(() => router.refresh());
+                          }}
+                          aria-label="Delete task"
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

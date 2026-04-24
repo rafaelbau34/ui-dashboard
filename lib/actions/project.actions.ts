@@ -14,6 +14,9 @@ export async function createProject(data: ProjectInput) {
 
   await db.insert(projects).values({
     ...result.data,
+    // Keep a formatted text version for existing UI while also storing a sortable date.
+    dueDate: result.data.dueDate.toISOString(),
+    dueDateAt: result.data.dueDate,
     status: result.data.status as any,
   });
 
@@ -31,6 +34,8 @@ export async function updateProject(id: number, data: ProjectInput) {
     .update(projects)
     .set({
       ...result.data,
+      dueDate: result.data.dueDate.toISOString(),
+      dueDateAt: result.data.dueDate,
       status: result.data.status as any,
     })
     .where(eq(projects.id, id));
