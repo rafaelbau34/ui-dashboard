@@ -38,6 +38,15 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ProjectForm } from "./forms/project-form";
+import { deleteProject } from "@/lib/actions/project.actions";
+import { MoreHorizontal, Edit, Trash, Plus } from "lucide-react";
+import {
   Search,
   Filter,
   Folder,
@@ -54,11 +63,20 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  projects,
-  type Project,
-  type ProjectStatus,
-} from "@/mock-data/dashboard";
+export type ProjectStatus = "in_progress" | "completed" | "on_hold";
+
+export interface Project {
+  id: string;
+  name: string;
+  color: string;
+  status: ProjectStatus;
+  progress: number;
+  totalTasks: number;
+  completedTasks: number;
+  dueDate: string;
+  ownerName: string;
+  ownerAvatarSeed: string;
+}
 import { useDashboardStore } from "@/store/dashboard-store";
 import { cn } from "@/lib/utils";
 
@@ -95,7 +113,10 @@ const projectIconMap: Record<string, { icon: LucideIcon; iconColor: string }> = 
   amber: { icon: Wallet, iconColor: "text-amber-500" },
 };
 
-export function ProjectsTable() {
+export function ProjectsTable({ projects }: { projects: Project[] }) {
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const {
     projectsSearchQuery,
     setProjectsSearchQuery,
@@ -200,6 +221,44 @@ export function ProjectsTable() {
           );
         },
       },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const p = row.original;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  setEditingProject(p);
+                  setIsDialogOpen(true);
+                }}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-red-600 focus:text-red-600"
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to delete this project?")) {
+                      await deleteProject(parseInt(p.id.replace('p', '')));
+                    }
+                  }}
+                >
+                  <Trash className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
     ],
     []
   );
@@ -246,6 +305,13 @@ export function ProjectsTable() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b">
         <h3 className="font-medium text-base">List Projects</h3>
         <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => {
+            setEditingProject(null);
+            setIsDialogOpen(true);
+          }}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
@@ -415,6 +481,29 @@ export function ProjectsTable() {
           </Button>
         </div>
       </div>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingProject ? "Edit Project" : "New Project"}</DialogTitle>
+          </DialogHeader>
+          <ProjectForm 
+            project={editingProject ? {
+              id: parseInt(editingProject.id.replace('p', '')),
+              name: editingProject.name,
+              color: editingProject.color as any,
+              status: editingProject.status,
+              progress: editingProject.progress,
+              totalTasks: editingProject.totalTasks,
+              completedTasks: editingProject.completedTasks,
+              dueDate: editingProject.dueDate,
+              ownerId: 1, // Simplified
+              clientId: 1, // Simplified
+            } : undefined}
+            onSuccess={() => setIsDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

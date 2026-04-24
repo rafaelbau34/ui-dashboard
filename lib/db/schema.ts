@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  cellphone: text("cellphone"),
   avatarSeed: text("avatarSeed"),
 });
 
@@ -27,6 +28,16 @@ export const projects = pgTable("projects", {
   dueDate: text("dueDate").notNull(),
   ownerId: integer("ownerId").references(() => users.id),
   clientId: integer("clientId").references(() => clients.id),
+});
+
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  projectId: integer("projectId").references(() => projects.id),
+  projectName: text("projectName").notNull(),
+  projectColor: text("projectColor").notNull(),
+  dueDate: text("dueDate").notNull(),
+  isCompleted: boolean("is_completed").default(false).notNull(),
 });
 
 export const performanceMetrics = pgTable("performance_metrics", {

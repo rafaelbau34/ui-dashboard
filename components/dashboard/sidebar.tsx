@@ -32,7 +32,6 @@ const navItems = [
   { title: "Calendar", href: "/calendar", icon: Calendar, iconColor: "text-orange-500" },
   { title: "Reports", href: "/reports", icon: BarChart3, iconColor: "text-rose-500" },
   { title: "Finance", href: "/finance", icon: Wallet, iconColor: "text-indigo-500" },
-  { title: "Settings", href: "/settings", icon: Settings, iconColor: "text-muted-foreground" },
 ];
 
 export function DashboardSidebar(

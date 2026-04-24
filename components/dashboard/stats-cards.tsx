@@ -1,39 +1,47 @@
 "use client";
 
-import { dashboardStats } from "@/mock-data/dashboard";
 import { Folder, ListTodo, Eye, CheckCircle2 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Total Projects",
-    value: dashboardStats.totalProjects.value,
-    change: dashboardStats.totalProjects.change,
-    icon: Folder,
-  },
-  {
-    title: "Total Task",
-    value: dashboardStats.totalTasks.value,
-    change: dashboardStats.totalTasks.change,
-    icon: ListTodo,
-  },
-  {
-    title: "In Reviews",
-    value: dashboardStats.inReviews.value,
-    change: dashboardStats.inReviews.change,
-    icon: Eye,
-  },
-  {
-    title: "Completed Tasks",
-    value: dashboardStats.completedTasks.value,
-    change: dashboardStats.completedTasks.change,
-    icon: CheckCircle2,
-  },
-];
+interface StatsProps {
+  stats: {
+    totalProjects: { value: number; change: number };
+    totalTasks: { value: number; change: number };
+    inReviews: { value: number; change: number };
+    completedTasks: { value: number; change: number };
+  };
+}
 
-export function StatsCards() {
+export function StatsCards({ stats }: StatsProps) {
+  const statsArray = [
+    {
+      title: "Total Projects",
+      value: stats.totalProjects.value,
+      change: stats.totalProjects.change,
+      icon: Folder,
+    },
+    {
+      title: "Total Task",
+      value: stats.totalTasks.value,
+      change: stats.totalTasks.change,
+      icon: ListTodo,
+    },
+    {
+      title: "In Reviews",
+      value: stats.inReviews.value,
+      change: stats.inReviews.change,
+      icon: Eye,
+    },
+    {
+      title: "Completed Tasks",
+      value: stats.completedTasks.value,
+      change: stats.completedTasks.change,
+      icon: CheckCircle2,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat, index) => (
+      {statsArray.map((stat, index) => (
         <div
           key={index}
           className="rounded-xl border border-border bg-card p-4"

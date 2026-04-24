@@ -15,11 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
 import {
-  performanceScore,
-  performanceChange,
-  performanceChartData,
-} from "@/mock-data/dashboard";
-import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -53,7 +48,13 @@ const chartConfig = {
   },
 };
 
-export function PerformanceChart() {
+interface PerformanceChartProps {
+  score: number;
+  change: number;
+  data: { day: string; value: number; isHighlight?: boolean }[];
+}
+
+export function PerformanceChart({ score, change, data }: PerformanceChartProps) {
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [period, setPeriod] = useState<Period>("7d");
   const [showGrid, setShowGrid] = useState(true);
@@ -67,7 +68,6 @@ export function PerformanceChart() {
   };
 
   // Pour l'instant, on garde les mêmes données quel que soit period
-  const data = performanceChartData;
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -125,9 +125,9 @@ export function PerformanceChart() {
       </div>
       <div className="p-4">
         <div className="flex items-baseline gap-2 mb-4">
-          <span className="text-3xl font-semibold">{performanceScore}%</span>
+          <span className="text-3xl font-semibold">{score}%</span>
           <span className="text-sm text-muted-foreground">
-            +{performanceChange}% vs last Week
+            +{change}% vs last Week
           </span>
         </div>
         <ChartContainer config={chartConfig} className="h-[175px] w-full">

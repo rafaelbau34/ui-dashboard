@@ -8,13 +8,15 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
-  DropdownMenuSeparator,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter } from "lucide-react";
-import { todayTasks } from "@/mock-data/dashboard";
 import { useDashboardStore } from "@/store/dashboard-store";
 import { cn } from "@/lib/utils";
+import { useTransition } from "react";
+import { toggleTaskStatus } from "@/lib/actions/task.actions";
 
 const projectColorMap: Record<string, string> = {
   blue: "rounded-lg border border-border bg-muted/50 text-foreground",
@@ -24,11 +26,27 @@ const projectColorMap: Record<string, string> = {
   amber: "rounded-lg border border-border bg-muted/50 text-foreground",
 };
 
-const uniqueProjects = Array.from(
-  new Map(todayTasks.map((t) => [t.projectId, { id: t.projectId, name: t.projectName }])).values()
-);
+export interface TaskData {
+  id: string;
+  name: string;
+  projectId: string;
+  projectName: string;
+  projectColor: string;
+  dueDate: string;
+  isCompleted: boolean;
+}
 
-export function TodaysTasks() {
+interface TodaysTasksProps {
+  tasks: TaskData[];
+}
+
+export function TodaysTasks({ tasks }: TodaysTasksProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const uniqueProjects = Array.from(
+    new Map(tasks.map((t) => [t.projectId, { id: t.projectId, name: t.projectName }])).values()
+  );
+
   const {
     tasksSearchQuery,
     setTasksSearchQuery,
@@ -38,7 +56,7 @@ export function TodaysTasks() {
     } = useDashboardStore();
 
   const filteredTasks = useMemo(() => {
-    let result = todayTasks;
+    let result = tasks;
     if (tasksSearchQuery.trim()) {
       const q = tasksSearchQuery.toLowerCase();
       result = result.filter(
@@ -51,7 +69,7 @@ export function TodaysTasks() {
       result = result.filter((t) => tasksProjectFilter.includes(t.projectId));
     }
     return result;
-  }, [tasksSearchQuery, tasksProjectFilter]);
+  }, [tasks, tasksSearchQuery, tasksProjectFilter]);
 
   const hasTaskFilters = tasksProjectFilter.length > 0;
 
@@ -117,9 +135,21 @@ export function TodaysTasks() {
           filteredTasks.map((task) => (
             <div
               key={task.id}
-              className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+              className={cn(
+                "flex flex-wrap items-center gap-3 px-4 py-3 transition-colors",
+                task.isCompleted ? "opacity-50" : "hover:bg-muted/30"
+              )}
             >
-              <span className="font-medium text-sm">{task.name}</span>
+              <Checkbox 
+                checked={task.isCompleted} 
+                onCheckedChange={(checked) => {
+                  startTransition(async () => {
+                    await toggleTaskStatus(parseInt(task.id), !!checked);
+                  });
+                }}
+                disabled={isPending}
+              />
+              <span className={cn("font-medium text-sm", task.isCompleted && "line-through")}>{task.name}</span>
               <div
                 className={cn(
                   "inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium",

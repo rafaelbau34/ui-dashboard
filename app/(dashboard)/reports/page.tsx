@@ -1,17 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getProjects } from "@/lib/db/queries";
+import { ReportsCharts } from "@/components/dashboard/reports-charts";
 
-export default function ReportsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ReportsPage() {
+  const projects = await getProjects();
+
   return (
     <main className="flex-1 p-4 sm:p-6 space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This page is under construction.</p>
-        </CardContent>
-      </Card>
+      <ReportsCharts projects={projects} />
     </main>
   );
 }
