@@ -45,8 +45,18 @@ import {
 import { ProjectForm } from "./forms/project-form";
 import { deleteProject } from "@/lib/actions/project.actions";
 import { MoreHorizontal, Edit, Trash, Plus } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { addTask, deleteTask, toggleTaskStatus, updateTask } from "@/lib/actions/task.actions";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  addTask,
+  deleteTask,
+  toggleTaskStatus,
+  updateTask,
+} from "@/lib/actions/task.actions";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import {
   Search,
@@ -103,7 +113,9 @@ function StatusBadge({ status }: { status: ProjectStatus }) {
     return (
       <div className="flex items-center gap-1.5">
         <Circle className="size-3.5 fill-cyan-500 text-cyan-500" />
-        <span className="text-sm text-cyan-600 dark:text-cyan-400">In Progress</span>
+        <span className="text-sm text-cyan-600 dark:text-cyan-400">
+          In Progress
+        </span>
       </div>
     );
   }
@@ -111,25 +123,30 @@ function StatusBadge({ status }: { status: ProjectStatus }) {
     return (
       <div className="flex items-center gap-1.5">
         <CheckCircle2 className="size-3.5 text-emerald-500" />
-        <span className="text-sm text-emerald-600 dark:text-emerald-400">Completed</span>
+        <span className="text-sm text-emerald-600 dark:text-emerald-400">
+          Completed
+        </span>
       </div>
     );
   }
   return (
     <div className="flex items-center gap-1.5">
       <Clock className="size-3.5 text-amber-500" />
-      <span className="text-sm text-amber-600 dark:text-amber-400">On Hold</span>
+      <span className="text-sm text-amber-600 dark:text-amber-400">
+        On Hold
+      </span>
     </div>
   );
 }
 
-const projectIconMap: Record<string, { icon: LucideIcon; iconColor: string }> = {
-  blue: { icon: Folder, iconColor: "text-blue-500" },
-  violet: { icon: LayoutGrid, iconColor: "text-violet-500" },
-  cyan: { icon: Database, iconColor: "text-cyan-500" },
-  pink: { icon: Megaphone, iconColor: "text-pink-500" },
-  amber: { icon: Wallet, iconColor: "text-amber-500" },
-};
+const projectIconMap: Record<string, { icon: LucideIcon; iconColor: string }> =
+  {
+    blue: { icon: Folder, iconColor: "text-blue-500" },
+    violet: { icon: LayoutGrid, iconColor: "text-violet-500" },
+    cyan: { icon: Database, iconColor: "text-cyan-500" },
+    pink: { icon: Megaphone, iconColor: "text-pink-500" },
+    amber: { icon: Wallet, iconColor: "text-amber-500" },
+  };
 
 export function ProjectsTable({
   projects,
@@ -166,7 +183,9 @@ export function ProjectsTable({
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -258,19 +277,23 @@ export function ProjectsTable({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => {
-                  setEditingProject(p);
-                  setIsDialogOpen(true);
-                }}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditingProject(p);
+                    setIsDialogOpen(true);
+                  }}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="text-red-600 focus:text-red-600"
                   onClick={async () => {
-                    if (confirm("Are you sure you want to delete this project?")) {
-                      await deleteProject(parseInt(p.id.replace('p', '')));
+                    if (
+                      confirm("Are you sure you want to delete this project?")
+                    ) {
+                      await deleteProject(parseInt(p.id.replace("p", "")));
                       startRefreshing(() => router.refresh());
                     }
                   }}
@@ -284,23 +307,24 @@ export function ProjectsTable({
         },
       },
     ],
-    []
+    [],
   );
 
   const filteredData = useMemo(() => {
     let result = projects;
     if (projectsSearchQuery.trim()) {
       const q = projectsSearchQuery.toLowerCase();
-      result = result.filter((p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.clientName ?? "").toLowerCase().includes(q)
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.clientName ?? "").toLowerCase().includes(q),
       );
     }
     if (projectStatusFilter !== "all") {
       result = result.filter((p) => p.status === projectStatusFilter);
     }
     return result;
-  }, [projectsSearchQuery, projectStatusFilter]);
+  }, [projects, projectsSearchQuery, projectStatusFilter]);
 
   const [rowSelection, setRowSelection] = useState({});
 
@@ -329,10 +353,13 @@ export function ProjectsTable({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b">
         <h3 className="font-medium text-base">List Projects</h3>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => {
-            setEditingProject(null);
-            setIsDialogOpen(true);
-          }}>
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditingProject(null);
+              setIsDialogOpen(true);
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             New Project
           </Button>
@@ -383,7 +410,9 @@ export function ProjectsTable({
               {hasActiveFilters && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setProjectStatusFilter("all")}>
+                  <DropdownMenuItem
+                    onClick={() => setProjectStatusFilter("all")}
+                  >
                     Clear filter
                   </DropdownMenuItem>
                 </>
@@ -401,7 +430,7 @@ export function ProjectsTable({
                   <TableHead key={header.id}>
                     {flexRender(
                       header.column.columnDef.header,
-                      header.getContext()
+                      header.getContext(),
                     )}
                   </TableHead>
                 ))}
@@ -427,7 +456,8 @@ export function ProjectsTable({
                   onClick={async (e) => {
                     // Don't hijack clicks on checkboxes / action menu.
                     const target = e.target as HTMLElement;
-                    if (target.closest("button, a, [role='menuitem'], input")) return;
+                    if (target.closest("button, a, [role='menuitem'], input"))
+                      return;
 
                     const p = row.original;
                     setActiveProject(p);
@@ -435,7 +465,10 @@ export function ProjectsTable({
 
                     // Lazy-fetch tasks via a lightweight endpoint implemented through Next route (below).
                     const projectId = parseInt(p.id.replace("p", ""));
-                    const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                    const res = await fetch(
+                      `/api/projects/${projectId}/tasks`,
+                      { cache: "no-store" },
+                    );
                     if (res.ok) {
                       const json = (await res.json()) as { tasks: TaskRow[] };
                       setProjectTasks(json.tasks);
@@ -448,7 +481,7 @@ export function ProjectsTable({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -525,31 +558,37 @@ export function ProjectsTable({
           </Button>
         </div>
       </div>
-      
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingProject ? "Edit Project" : "New Project"}</DialogTitle>
+            <DialogTitle>
+              {editingProject ? "Edit Project" : "New Project"}
+            </DialogTitle>
           </DialogHeader>
-          <ProjectForm 
+          <ProjectForm
             clients={clients}
-            project={editingProject ? {
-              id: parseInt(editingProject.id.replace('p', '')),
-              name: editingProject.name,
-              color: editingProject.color as any,
-              status: editingProject.status,
-              progress: editingProject.progress,
-              totalTasks: editingProject.totalTasks,
-              completedTasks: editingProject.completedTasks,
-              dueDate: editingProject.dueDateAt
-                ? new Date(editingProject.dueDateAt as any)
-                : new Date(editingProject.dueDate),
-              ownerId: 1, // Simplified
-              clientId: editingProject.clientId ?? 1, // Simplified
-              totalBudget: Number(editingProject.totalBudget ?? 0),
-              category: editingProject.category ?? "Development",
-            } : undefined}
-            onSuccess={() => setIsDialogOpen(false)} 
+            project={
+              editingProject
+                ? {
+                    id: parseInt(editingProject.id.replace("p", "")),
+                    name: editingProject.name,
+                    color: editingProject.color as any,
+                    status: editingProject.status,
+                    progress: editingProject.progress,
+                    totalTasks: editingProject.totalTasks,
+                    completedTasks: editingProject.completedTasks,
+                    dueDate: editingProject.dueDateAt
+                      ? new Date(editingProject.dueDateAt as any)
+                      : new Date(editingProject.dueDate),
+                    ownerId: 1, // Simplified
+                    clientId: editingProject.clientId ?? 1, // Simplified
+                    totalBudget: Number(editingProject.totalBudget ?? 0),
+                    category: editingProject.category ?? "Development",
+                  }
+                : undefined
+            }
+            onSuccess={() => setIsDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
@@ -573,11 +612,20 @@ export function ProjectsTable({
                     if (e.key === "Enter") {
                       e.preventDefault();
                       (async () => {
-                        const projectId = parseInt(activeProject.id.replace("p", ""));
+                        const projectId = parseInt(
+                          activeProject.id.replace("p", ""),
+                        );
                         const dueDate = activeProject.dueDate;
-                        await addTask({ name: newTaskName, projectId, dueDate });
+                        await addTask({
+                          name: newTaskName,
+                          projectId,
+                          dueDate,
+                        });
                         setNewTaskName("");
-                        const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                        const res = await fetch(
+                          `/api/projects/${projectId}/tasks`,
+                          { cache: "no-store" },
+                        );
                         if (res.ok) setProjectTasks((await res.json()).tasks);
                       })();
                     }
@@ -587,11 +635,16 @@ export function ProjectsTable({
                   size="sm"
                   onClick={async () => {
                     if (!newTaskName.trim()) return;
-                    const projectId = parseInt(activeProject.id.replace("p", ""));
+                    const projectId = parseInt(
+                      activeProject.id.replace("p", ""),
+                    );
                     const dueDate = activeProject.dueDate;
                     await addTask({ name: newTaskName, projectId, dueDate });
                     setNewTaskName("");
-                    const res = await fetch(`/api/projects/${projectId}/tasks`, { cache: "no-store" });
+                    const res = await fetch(
+                      `/api/projects/${projectId}/tasks`,
+                      { cache: "no-store" },
+                    );
                     if (res.ok) setProjectTasks((await res.json()).tasks);
                     startRefreshing(() => router.refresh());
                   }}
@@ -602,7 +655,9 @@ export function ProjectsTable({
 
               <div className="divide-y rounded-lg border">
                 {projectTasks.length === 0 ? (
-                  <div className="p-4 text-sm text-muted-foreground">No tasks yet.</div>
+                  <div className="p-4 text-sm text-muted-foreground">
+                    No tasks yet.
+                  </div>
                 ) : (
                   projectTasks.map((t) => (
                     <div key={t.id} className="flex items-center gap-2 p-3">
@@ -611,7 +666,11 @@ export function ProjectsTable({
                         onCheckedChange={async (checked) => {
                           await toggleTaskStatus(t.id, !!checked);
                           setProjectTasks((prev) =>
-                            prev.map((x) => (x.id === t.id ? { ...x, isCompleted: !!checked } : x))
+                            prev.map((x) =>
+                              x.id === t.id
+                                ? { ...x, isCompleted: !!checked }
+                                : x,
+                            ),
                           );
                           startRefreshing(() => router.refresh());
                         }}
@@ -625,9 +684,15 @@ export function ProjectsTable({
                             if (e.key === "Enter") {
                               e.preventDefault();
                               (async () => {
-                                await updateTask(t.id, { name: editingTaskName });
+                                await updateTask(t.id, {
+                                  name: editingTaskName,
+                                });
                                 setProjectTasks((prev) =>
-                                  prev.map((x) => (x.id === t.id ? { ...x, name: editingTaskName } : x))
+                                  prev.map((x) =>
+                                    x.id === t.id
+                                      ? { ...x, name: editingTaskName }
+                                      : x,
+                                  ),
                                 );
                                 setEditingTaskId(null);
                                 setEditingTaskName("");
@@ -636,7 +701,12 @@ export function ProjectsTable({
                           }}
                         />
                       ) : (
-                        <span className={cn("text-sm font-medium", t.isCompleted && "line-through opacity-60")}>
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            t.isCompleted && "line-through opacity-60",
+                          )}
+                        >
                           {t.name}
                         </span>
                       )}
@@ -649,7 +719,11 @@ export function ProjectsTable({
                             onClick={async () => {
                               await updateTask(t.id, { name: editingTaskName });
                               setProjectTasks((prev) =>
-                                prev.map((x) => (x.id === t.id ? { ...x, name: editingTaskName } : x))
+                                prev.map((x) =>
+                                  x.id === t.id
+                                    ? { ...x, name: editingTaskName }
+                                    : x,
+                                ),
                               );
                               setEditingTaskId(null);
                               setEditingTaskName("");
@@ -679,7 +753,9 @@ export function ProjectsTable({
                           onClick={async () => {
                             if (!confirm("Delete this task?")) return;
                             await deleteTask(t.id);
-                            setProjectTasks((prev) => prev.filter((x) => x.id !== t.id));
+                            setProjectTasks((prev) =>
+                              prev.filter((x) => x.id !== t.id),
+                            );
                             startRefreshing(() => router.refresh());
                           }}
                           aria-label="Delete task"
