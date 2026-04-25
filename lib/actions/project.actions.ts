@@ -1,7 +1,8 @@
 "use server";
 
 import { db } from "../db";
-import { projects, tasks } from "../db/schema";
+
+import { projects, tasks, users } from "../db/schema";
 import { ProjectSchema, type ProjectInput } from "../validations";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -12,12 +13,16 @@ export async function createProject(data: ProjectInput) {
     throw new Error("Invalid project data");
   }
 
+  const adminUser = await db.select().from(users).limit(1);
+  const validOwnerId = adminUser[0]?.id ?? 1;
+
   await db.insert(projects).values({
     ...result.data,
     // Keep a formatted text version for existing UI while also storing a sortable date.
     dueDate: result.data.dueDate.toISOString(),
     dueDateAt: result.data.dueDate,
     status: result.data.status as any,
+    ownerId: validOwnerId,
   });
 
   revalidatePath("/projects");
