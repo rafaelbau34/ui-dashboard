@@ -75,6 +75,15 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+
 export type ProjectStatus = "in_progress" | "completed" | "on_hold";
 
 export interface Project {
@@ -163,6 +172,9 @@ export function ProjectsTable({
   const [projectTasks, setProjectTasks] = useState<TaskRow[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>(
+    new Date(),
+  );
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTaskName, setEditingTaskName] = useState("");
 
@@ -631,15 +643,46 @@ export function ProjectsTable({
                     }
                   }}
                 />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[130px] justify-start text-left font-normal shrink-0",
+                        !newTaskDueDate && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newTaskDueDate ? (
+                        format(newTaskDueDate, "dd/MM/yy")
+                      ) : (
+                        <span>Date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={newTaskDueDate}
+                      onSelect={(d) => d && setNewTaskDueDate(d)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
                 <Button
                   size="sm"
+                  className="shrink-0"
                   onClick={async () => {
-                    if (!newTaskName.trim()) return;
+                    if (!newTaskName.trim() || !newTaskDueDate) return;
                     const projectId = parseInt(
                       activeProject.id.replace("p", ""),
                     );
-                    const dueDate = activeProject.dueDate;
-                    await addTask({ name: newTaskName, projectId, dueDate });
+                    await addTask({
+                      name: newTaskName,
+                      projectId,
+                      dueDate: newTaskDueDate.toISOString(), // Use the specific task date
+                    });
                     setNewTaskName("");
                     const res = await fetch(
                       `/api/projects/${projectId}/tasks`,
@@ -701,14 +744,21 @@ export function ProjectsTable({
                           }}
                         />
                       ) : (
-                        <span
-                          className={cn(
-                            "text-sm font-medium",
-                            t.isCompleted && "line-through opacity-60",
-                          )}
-                        >
-                          {t.name}
-                        </span>
+                        <div className="flex flex-col">
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              t.isCompleted && "line-through opacity-60",
+                            )}
+                          >
+                            {t.name}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {t.dueDate
+                              ? format(new Date(t.dueDate), "MMM d, yyyy")
+                              : "No date"}
+                          </span>
+                        </div>
                       )}
 
                       <div className="ml-auto flex items-center gap-1">
