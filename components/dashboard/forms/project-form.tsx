@@ -25,7 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTransition } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -99,7 +103,10 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a status" />
@@ -121,7 +128,10 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Theme Color</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a color" />
@@ -140,64 +150,47 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
             )}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Due Date</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value instanceof Date ? (
-                          format(field.value, "dd/MM/yy")
-                        ) : (
-                          <span>Select date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value instanceof Date ? field.value : undefined}
-                        onSelect={(d) => d && field.onChange(d)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="progress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Progress (%)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    value={typeof field.value === "number" ? field.value : 0}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Due Date</FormLabel>
+              <FormControl>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value instanceof Date ? (
+                        format(field.value, "dd/MM/yy")
+                      ) : (
+                        <span>Select date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        field.value instanceof Date ? field.value : undefined
+                      }
+                      onSelect={(d) => d && field.onChange(d)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -205,7 +198,10 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Client</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={String(field.value)}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select client" />
@@ -232,8 +228,14 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
                 <FormControl>
                   <Input
                     type="number"
-                    value={typeof field.value === "number" ? field.value : 0}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    defaultValue={
+                      typeof field.value === "number" ? field.value : 0
+                    }
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? 0 : Number(e.target.value),
+                      )
+                    }
                     placeholder="0"
                   />
                 </FormControl>
@@ -256,7 +258,11 @@ export function ProjectForm({ project, clients, onSuccess }: ProjectFormProps) {
           )}
         />
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? "Saving..." : project ? "Update Project" : "Create Project"}
+          {isPending
+            ? "Saving..."
+            : project
+              ? "Update Project"
+              : "Create Project"}
         </Button>
       </form>
     </Form>
