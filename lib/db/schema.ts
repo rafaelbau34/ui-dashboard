@@ -1,13 +1,24 @@
-import { pgTable, serial, text, integer, numeric, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  numeric,
+  timestamp,
+  pgEnum,
+  boolean,
+} from "drizzle-orm/pg-core";
 
-export const projectStatusEnum = pgEnum("project_status", ["in_progress", "completed", "on_hold"]);
+export const projectStatusEnum = pgEnum("project_status", [
+  "in_progress",
+  "completed",
+  "on_hold",
+]);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  cellphone: text("cellphone"),
-  avatarSeed: text("avatarSeed"),
+  name: text("name").notNull().unique(),
+  password: text("password").notNull(),
 });
 
 export const clients = pgTable("clients", {
@@ -29,7 +40,10 @@ export const projects = pgTable("projects", {
   dueDate: text("dueDate").notNull(),
   // New sortable date value (Mexico datepicker will write here).
   dueDateAt: timestamp("due_date", { mode: "date" }),
-  totalBudget: numeric("total_budget", { precision: 12, scale: 2 }).$type<number>().notNull().default(0),
+  totalBudget: numeric("total_budget", { precision: 12, scale: 2 })
+    .$type<number>()
+    .notNull()
+    .default(0),
   category: text("category").notNull().default("Development"),
   ownerId: integer("ownerId").references(() => users.id),
   clientId: integer("clientId").references(() => clients.id),
