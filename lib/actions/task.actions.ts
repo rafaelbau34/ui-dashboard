@@ -36,6 +36,7 @@ export async function createTask(data: TaskInput) {
       .set({
         totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${result.data.projectId})`,
         completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${result.data.projectId} and ${tasks.isCompleted} = true)`,
+        progress: sql`case when (select count(*) from ${tasks} where ${tasks.projectId} = ${result.data.projectId}) = 0 then 0 else floor(((select count(*) from ${tasks} where ${tasks.projectId} = ${result.data.projectId} and ${tasks.isCompleted} = true)::numeric * 100) / (select count(*) from ${tasks} where ${tasks.projectId} = ${result.data.projectId})::numeric)::int end`,
       })
       .where(eq(projects.id, result.data.projectId));
   });
@@ -78,6 +79,7 @@ export async function toggleTaskStatus(id: number, isCompleted: boolean) {
       .set({
         totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!})`,
         completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)`,
+        progress: sql`case when (select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!}) = 0 then 0 else floor(((select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)::numeric * 100) / (select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!})::numeric)::int end`,
       })
       .where(eq(projects.id, task.projectId!));
   });
@@ -100,6 +102,7 @@ export async function deleteTask(id: number) {
         .set({
           totalTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!})`,
           completedTasks: sql`(select count(*)::int from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)`,
+          progress: sql`case when (select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!}) = 0 then 0 else floor(((select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!} and ${tasks.isCompleted} = true)::numeric * 100) / (select count(*) from ${tasks} where ${tasks.projectId} = ${task.projectId!})::numeric)::int end`,
         })
         .where(eq(projects.id, task.projectId!));
     }

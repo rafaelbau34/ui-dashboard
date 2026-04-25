@@ -175,7 +175,7 @@ export function TodaysTasks({ tasks }: TodaysTasksProps) {
                 {task.projectName}
               </div>
               <span className="text-xs text-muted-foreground ml-auto">
-                Due: {task.dueDate}
+                Due: {(task.dueDate ?? "").split("T")[0]}
               </span>
             </div>
           ))

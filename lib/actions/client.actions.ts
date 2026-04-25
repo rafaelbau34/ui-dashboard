@@ -15,6 +15,8 @@ export async function createClient(data: ClientInput) {
   try {
     await db.insert(clients).values(result.data);
     revalidatePath("/clients");
+    revalidatePath("/");
+    revalidatePath("/projects");
     return { success: true };
   } catch (error: any) {
     if (error.code === '23505') {
@@ -33,6 +35,8 @@ export async function updateClient(id: number, data: ClientInput) {
   try {
     await db.update(clients).set(result.data).where(eq(clients.id, id));
     revalidatePath("/clients");
+    revalidatePath("/");
+    revalidatePath("/projects");
     return { success: true };
   } catch (error: any) {
     if (error.code === '23505') {
@@ -45,4 +49,6 @@ export async function updateClient(id: number, data: ClientInput) {
 export async function deleteClient(id: number) {
   await db.delete(clients).where(eq(clients.id, id));
   revalidatePath("/clients");
+  revalidatePath("/");
+  revalidatePath("/projects");
 }

@@ -293,7 +293,7 @@ export function ProjectsTable({
       const q = projectsSearchQuery.toLowerCase();
       result = result.filter((p) =>
         p.name.toLowerCase().includes(q) ||
-        p.ownerName.toLowerCase().includes(q)
+        (p.clientName ?? "").toLowerCase().includes(q)
       );
     }
     if (projectStatusFilter !== "all") {

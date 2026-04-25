@@ -21,7 +21,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { cn } from "@/lib/utils";
 
@@ -42,11 +41,11 @@ export function DashboardSidebar(
   return (
     <Sidebar collapsible="offcanvas" className="!border-r-0" {...props}>
       <SidebarHeader className="px-3 py-4">
-        <div className="flex items-center justify-end w-full">
-          <Avatar className="size-8 border-2 border-sidebar shrink-0">
-            <AvatarImage src="/ln.png" />
-            <AvatarFallback>LN</AvatarFallback>
-          </Avatar>
+        <div className="flex items-center w-full">
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold leading-none">Workspace</div>
+            <div className="text-xs text-muted-foreground truncate">UI Dashboard</div>
+          </div>
         </div>
       </SidebarHeader>
 
