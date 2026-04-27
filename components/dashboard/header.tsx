@@ -19,7 +19,7 @@ export function DashboardHeader() {
         <ThemeToggle />
         <Button variant="ghost" size="icon" asChild className="size-8">
           <Link
-            href="https://github.com/ln-dev7/square-ui/tree/master/templates/dashboard-5"
+            href="https://github.com/rafaelbau34/ui-dashboard"
             target="_blank"
             rel="noopener noreferrer"
           >

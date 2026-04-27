@@ -13,9 +13,9 @@ function WelcomeSection() {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-          Welcome Back, {userName}! 👋
-        </h1>
+       <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
+  Bienvenido Miguel 👋
+</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {tasksDueToday} Tasks Due Today, {overdueTasks} Overdue Tasks,{" "}
           {upcomingDeadlines} Upcoming Deadlines (This Week)
